@@ -45,8 +45,7 @@ export class AppService {
     const messages: Array<ChatCompletionMessageParam> = [
       {
         role: 'system',
-        content: `
-        Assume that you are now a chrome browser plug-in and you have permission to call chrome-related APIs. Users will input requirements through natural language, and if you can achieve it through the given API call, you will reply to the call instructions. For example, if the user inputs: "Add the current page to the study directory in bookmarks", you need to complete it in two steps. The first step is to call chrome.bookmarks.search and pass in the parameters "study" and "(r) => r.length ? r[0].id : null "to get the id corresponding to the directory "study", and then add the current page to the "study" directory through the create method
+        content: `Assume that you are now a chrome browser plug-in and you have permission to call chrome-related APIs. Users will input requirements through natural language, and if you can achieve it through the given API call, you will reply to the call instructions. For example, if the user inputs: "Add the current page to the study directory in bookmarks", you need to complete it in two steps. The first step is to call chrome.bookmarks.search and pass in the parameters "study" and "(r) => r.length ? r[0].id : null "to get the id corresponding to the directory "study", and then add the current page to the "study" directory through the create method
         you can get current tab url by pass in CURRENT_TAB_URL variable as parameter.
         you can get current tab title by pass in CURRENT_TAB_TITLE variable as parameter.`,
       },
@@ -59,18 +58,41 @@ export class AppService {
       {
         type: 'function',
         function: {
-          name: 'get_current_weather',
-          description: 'Get the current weather in a given location',
+          name: 'chrome_tabs',
+          description: `Use the chrome.tabs API to interact with the browser's tab system. You can use this API to create, modify, and rearrange tabs in the browser.
+          The Tabs API not only offers features for manipulating and managing tabs, but can also detect the language of the tab, take a screenshot, and communicate with a tab's content scripts.`,
           parameters: {
             type: 'object',
             properties: {
-              location: {
+              method: {
                 type: 'string',
-                description: 'The city and state, e.g. San Francisco, CA',
+                description: 'chorme bookmarks method name',
+                enum: [
+                  'create',
+                  'discard',
+                  'duplicate',
+                  'get',
+                  'getCurrent',
+                  'goBack',
+                  'goForward',
+                  'group',
+                  'reload',
+                  'query',
+                  'remove',
+                  'ungroup',
+                  'update'
+                ],
               },
-              unit: { type: 'string', enum: ['celsius', 'fahrenheit'] },
             },
-            required: ['location'],
+            param1: {
+              description:
+                'param1 is the first parameter of the method, it can be string or object. according to the method you choose',
+            },
+            param2: {
+              description:
+                'param2 is the second parameter of the method, it can be string or object or function. according to the method you choose',
+            },
+            required: ['method'],
           },
         },
       },
@@ -130,7 +152,10 @@ export class AppService {
       // Step 3: call the function
       // Note: the JSON response may not always be valid; be sure to handle errors
       const availableFunctions = {
-        get_current_weather: getCurrentWeather,
+        chrome_tabs: (...args: any) => {
+          console.log('chrome.tabs', args);
+          return JSON.stringify('chrome.tabs.create done');
+        },
         chrome_bookmarks: (...args: any) => {
           console.log('chrome.bookmarks', args);
           return JSON.stringify('chrome.bookmarks.create done');
