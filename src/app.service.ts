@@ -66,7 +66,7 @@ export class AppService {
             properties: {
               method: {
                 type: 'string',
-                description: 'chorme bookmarks method name',
+                description: 'chorme.tabs method name',
                 enum: [
                   'create',
                   'discard',
@@ -101,7 +101,6 @@ export class AppService {
         function: {
           name: 'chrome_bookmarks',
           description: `Use the chrome.bookmarks API to create, organize, and otherwise manipulate bookmarks. Also see Override Pages, which you can use to create a custom Bookmark Manager page..
-          
             `,
           parameters: {
             type: 'object',
@@ -136,6 +135,37 @@ export class AppService {
           },
         },
       },
+      {
+        type: 'function',
+        function: {
+          name: 'chrome_tabGroups',
+          description: `Use the chrome.tabGroups API to interact with the browser's tab grouping system. You can use this API to modify and rearrange tab groups in the browser. To group and ungroup tabs, or to query what tabs are in groups, use the chrome.tabs API.`,
+          parameters: {
+            type: 'object',
+            properties: {
+              method: {
+                type: 'string',
+                description: 'chorme.tabGroups method name',
+                enum: [
+                  'get',
+                  'move',
+                  'query',
+                  'update',
+                ],
+              },
+              param1: {
+                description:
+                  'param1 is the first parameter of the method, it can be string or object. according to the method you choose',
+              },
+              param2: {
+                description:
+                  'param2 is the second parameter of the method, it can be string or object or function. according to the method you choose',
+              },
+            },
+            required: ['method'],
+          },
+        }
+      }
     ];
 
     const response = await openai.chat.completions.create({
@@ -155,6 +185,10 @@ export class AppService {
         chrome_tabs: (...args: any) => {
           console.log('chrome.tabs', args);
           return JSON.stringify('chrome.tabs.create done');
+        },
+        chrome_tabGroups: (...args: any) => {
+          console.log('chrome.tabGroups', args);
+          return JSON.stringify('chrome.tabGroups.create done');
         },
         chrome_bookmarks: (...args: any) => {
           console.log('chrome.bookmarks', args);
