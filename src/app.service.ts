@@ -4,36 +4,12 @@ import {
   ChatCompletionMessageParam,
   ChatCompletionTool,
 } from 'openai/resources';
+console.log(process.env.OPENAI_KEY);
+
 const openai = new OpenAI({
   baseURL: 'https://textai.buzz/v1/',
-  apiKey: '',
+  apiKey: process.env.OPENAI_KEY,
 });
-
-// Example dummy function hard coded to return the same weather
-// In production, this could be your backend API or an external API
-function getCurrentWeather(location) {
-  if (location.toLowerCase().includes('tokyo')) {
-    return JSON.stringify({
-      location: 'Tokyo',
-      temperature: '10',
-      unit: 'celsius',
-    });
-  } else if (location.toLowerCase().includes('san francisco')) {
-    return JSON.stringify({
-      location: 'San Francisco',
-      temperature: '72',
-      unit: 'fahrenheit',
-    });
-  } else if (location.toLowerCase().includes('paris')) {
-    return JSON.stringify({
-      location: 'Paris',
-      temperature: '22',
-      unit: 'fahrenheit',
-    });
-  } else {
-    return JSON.stringify({ location, temperature: 'unknown' });
-  }
-}
 
 @Injectable()
 export class AppService {
@@ -45,7 +21,11 @@ export class AppService {
     const messages: Array<ChatCompletionMessageParam> = [
       {
         role: 'system',
-        content: `Assume that you are now a chrome browser plug-in and you have permission to call chrome-related APIs. Users will input requirements through natural language, and if you can achieve it through the given API call, you will reply to the call instructions. For example, if the user inputs: "Add the current page to the study directory in bookmarks", you need to complete it in two steps. The first step is to call chrome.bookmarks.search and pass in the parameters "study" and "(r) => r.length ? r[0].id : null "to get the id corresponding to the directory "study", and then add the current page to the "study" directory through the create method
+        content: `Assume that you are now a chrome browser plug-in and you have permission to call chrome-related APIs.
+        Users will input requirements through natural language, and if you can achieve it through the given API call, you will reply to the call instructions. 
+        For example, if the user inputs: "Add the current page to the study directory in bookmarks", you need to complete it in two steps.
+        The first step is to call chrome.bookmarks.search and pass in the parameters "study" and "(r) => r.length ? r[0].id : null "to get the id corresponding to the directory "study",
+        and then add the current page to the "study" directory through the create method.
         you can get current tab url by pass in CURRENT_TAB_URL variable as parameter.
         you can get current tab title by pass in CURRENT_TAB_TITLE variable as parameter.`,
       },
@@ -80,7 +60,7 @@ export class AppService {
                   'query',
                   'remove',
                   'ungroup',
-                  'update'
+                  'update',
                 ],
               },
             },
@@ -146,12 +126,7 @@ export class AppService {
               method: {
                 type: 'string',
                 description: 'chorme.tabGroups method name',
-                enum: [
-                  'get',
-                  'move',
-                  'query',
-                  'update',
-                ],
+                enum: ['get', 'move', 'query', 'update'],
               },
               param1: {
                 description:
@@ -164,8 +139,8 @@ export class AppService {
             },
             required: ['method'],
           },
-        }
-      }
+        },
+      },
     ];
 
     const response = await openai.chat.completions.create({
