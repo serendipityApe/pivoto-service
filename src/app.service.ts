@@ -10,7 +10,16 @@ const openai = new OpenAI({
   baseURL: 'https://textai.buzz/v1/',
   apiKey: process.env.OPENAI_KEY,
 });
-
+/** prompt
+ * v0
+ * Assume that you are now a chrome browser plug-in and you have permission to call chrome-related APIs.
+        Users will input requirements through natural language, and if you can achieve it through the given API call, you will reply to the call instructions. 
+        For example, if the user inputs: "Add the current page to the study directory in bookmarks", you need to complete it in two steps.
+        The first step is to call chrome.bookmarks.search and pass in the parameters "study" and "(r) => r.length ? r[0].id : null "to get the id corresponding to the directory "study",
+        and then add the current page to the "study" directory through the create method.
+        you can get current tab url by pass in CURRENT_TAB_URL variable as parameter.
+        you can get current tab title by pass in CURRENT_TAB_TITLE variable as parameter.
+ */
 @Injectable()
 export class AppService {
   getHello(): string {
@@ -21,19 +30,20 @@ export class AppService {
     const messages: Array<ChatCompletionMessageParam> = [
       {
         role: 'system',
-        content: `Assume that you are now a chrome browser plug-in and you have permission to call chrome-related APIs.
-        Users will input requirements through natural language, and if you can achieve it through the given API call, you will reply to the call instructions. 
-        For example, if the user inputs: "Add the current page to the study directory in bookmarks", you need to complete it in two steps.
-        The first step is to call chrome.bookmarks.search and pass in the parameters "study" and "(r) => r.length ? r[0].id : null "to get the id corresponding to the directory "study",
-        and then add the current page to the "study" directory through the create method.
-        you can get current tab url by pass in CURRENT_TAB_URL variable as parameter.
-        you can get current tab title by pass in CURRENT_TAB_TITLE variable as parameter.`,
+        content: `Assume that you are now a chrome browser plug-in and have permission to call the given chrome API. Users input requirements through natural language. If it can be implemented through a given API call, you need to reply to the call instructions. But if the user enters very vague requirements, you first have to guess the list of features that you can implement and that the user may want. The given function lists some APIs based on the chrome extensions manifestV3 api, such as function: "chrome_tabs", which represents the tab-related API. Its first parameter requires you to pass in the specific name in the manifestV3 api. For example, if you want to call chrome.tabs.create, you only need to call the chrome_tabs function and set the parameter method to create. At this time, you need to pass in the remaining param1 and param2 parameters, which represent the required parameters createProperties and callback of the create method respectively. For example, the user inputs: "Add the current page to the "study" directory in the bookmarks." You need to analyze this requirement based on the given API. The first step is to obtain the bookmark id of the directory named "study", which is the 
+        <function: {
+          name: 'chrome_bookmarks',
+          arguments: '{"method":"search","param1":"study","param2":"(r) => r.length ? r[0].id : null"}'
+        }>, the second step is to add the current page to the "study" directory by calling the chrome.tabs.create method correctly.
+             You can get the current tab url by passing in the CURRENT_TAB_URL variable as parameter.
+             You can get the current tab title by passing in the CURRENT_TAB_TITLE variable as parameter.`,
       },
       {
         role: 'user',
         content: content,
       },
     ];
+    
     const tools: ChatCompletionTool[] = [
       {
         type: 'function',
@@ -63,14 +73,14 @@ export class AppService {
                   'update',
                 ],
               },
-            },
-            param1: {
-              description:
-                'param1 is the first parameter of the method, it can be string or object. according to the method you choose',
-            },
-            param2: {
-              description:
-                'param2 is the second parameter of the method, it can be string or object or function. according to the method you choose',
+              param1: {
+                description:
+                  'param1 is the first parameter of the method, it can be string or object. according to the method you choose',
+              },
+              param2: {
+                description:
+                  'param2 is the second parameter of the method, it can be string or object or function. according to the method you choose',
+              },
             },
             required: ['method'],
           },
@@ -141,6 +151,25 @@ export class AppService {
           },
         },
       },
+      {
+        type: 'function',
+        function: {
+          name: 'vague_requirement',
+          description: `
+          If the user enters a very vague requirement, you first have to guess at the list of features that you can implement and that the user might want.
+          `,
+          parameters: {
+            type: 'object',
+            properties: {
+              param1: {
+                description:
+                  'the list of features that you can implement and that the user might want',
+              },
+            },
+            required: ['method'],
+          },
+        },
+      },
     ];
 
     const response = await openai.chat.completions.create({
@@ -168,6 +197,10 @@ export class AppService {
         chrome_bookmarks: (...args: any) => {
           console.log('chrome.bookmarks', args);
           return JSON.stringify('chrome.bookmarks.create done');
+        },
+        vague_requirement: (...args: any) => {
+          console.log('vague_requirement', args);
+          return JSON.stringify('vague_requirement done');
         },
       }; // only one function in this example, but you can have multiple
       messages.push(responseMessage as any); // extend conversation with assistant's reply
