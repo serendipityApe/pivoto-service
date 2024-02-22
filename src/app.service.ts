@@ -49,8 +49,7 @@ export class AppService {
         type: 'function',
         function: {
           name: 'chrome_tabs',
-          description: `Use the chrome.tabs API to interact with the browser's tab system. You can use this API to create, modify, and rearrange tabs in the browser.
-          The Tabs API not only offers features for manipulating and managing tabs, but can also detect the language of the tab, take a screenshot, and communicate with a tab's content scripts.`,
+          description: `This function is a collection of chrome.tabs in the chrome Extension Reference API manifestV3.`,
           parameters: {
             type: 'object',
             properties: {
@@ -75,7 +74,7 @@ export class AppService {
               },
               param1: {
                 description:
-                  'param1 is the first parameter of the method, it can be string or object. according to the method you choose',
+                  'param1 is the first parameter of the chrome extension reference API, and its type is consistent with the first parameter of the chrome api you selected.If the method is create, its type is object. If the method is discard, its type is string, which represents tabId.',
               },
               param2: {
                 description:
