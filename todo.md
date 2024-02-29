@@ -11,6 +11,12 @@ deadline: 4.20
 - 设置页面（可选）
 - 最近调用的ai命令列表，快速执行（可选）
 - 全为空时展示提示语（可选）
+- ui(可选)
+  ~~desc显示group信息~~
+  input下显示搜索loading动画
+  scroll更加自然，仅在滚动的时候展示
+- @group
+- css -> tailwind
 - ai command records & suggestion
 - 跑通服务端执行流程。sandbox 2d
 - 落地页，包括营销页/首页，安装后跳转的新人指导页。 3d
