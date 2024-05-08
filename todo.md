@@ -17,7 +17,8 @@ deadline: 4.20
   input下显示搜索loading动画
   scroll更加自然，仅在滚动的时候展示
 - @group
-- css -> tailwind
+- ~~css -> tailwind~~
+- @ai时依然出现input suggestion
 - ai command records & suggestion
 - 跑通服务端执行流程。sandbox 2d
 - 落地页，包括营销页/首页，安装后跳转的新人指导页。 3d
