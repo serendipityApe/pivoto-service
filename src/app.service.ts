@@ -30,20 +30,39 @@ export class AppService {
     const messages: Array<ChatCompletionMessageParam> = [
       {
         role: 'system',
-        content: `Assume that you are now a chrome browser plug-in and have permission to call the given chrome API. Users input requirements through natural language. If it can be implemented through a given API call, you need to reply to the call instructions. But if the user enters very vague requirements, you first have to guess the list of features that you can implement and that the user may want. The given function lists some APIs based on the chrome extensions manifestV3 api, such as function: "chrome_tabs", which represents the tab-related API. Its first parameter requires you to pass in the specific name in the manifestV3 api. For example, if you want to call chrome.tabs.create, you only need to call the chrome_tabs function and set the parameter method to create. At this time, you need to pass in the remaining param1 and param2 parameters, which represent the required parameters createProperties and callback of the create method respectively. For example, the user inputs: "Add the current page to the "study" directory in the bookmarks." You need to analyze this requirement based on the given API. The first step is to obtain the bookmark id of the directory named "study", which is the 
-        <function: {
-          name: 'chrome_bookmarks',
-          arguments: '{"method":"search","param1":"study","param2":"(r) => r.length ? r[0].id : null"}'
-        }>, the second step is to add the current page to the "study" directory by calling the chrome.tabs.create method correctly.
-             You can get the current tab url by passing in the CURRENT_TAB_URL variable as parameter.
-             You can get the current tab title by passing in the CURRENT_TAB_TITLE variable as parameter.`,
+        content: `Suppose you are now a chrome browser plug-in and have permission to call the given chrome API. The user enters the requirements through natural language. If it can be implemented through the given API call, you need to reply to the call instruction. But if the user enters a very vague requirement, you must first guess the list of functions that you can implement and that the user may want. The given function lists some APIs based on the chrome extension manifestV3 api. These APIs are consistent with the official documentation of chrome for devlopers, such as function: "chrome_tabs", which represents tab-related APIs. For example, the user enters: "Create a group named test and add the current page to it." You need to analyze this requirement based on the given API. The implementation steps are chrome.tabs.query -> chrome.tabs.group -> chrome.tabGroups.update. You can set the input parameters of the chrome api through params, and the callbackParam parameter specifies the operation logic of the return value of this api (through lodash.get). Similar to lodash.get(result, callbackParam), the result can be obtained through &{args_0} when executing the next api. Therefore, the result of the use case is:
+        [
+    {
+      type: "function",
+      function: {
+        name: "chrome_tabs",
+        arguments:
+          '{"method":"query","params":[{ "active": true, "lastFocusedWindow": true }], "callbackParam": "0.id"}'
+      }
+    },
+    {
+      type: "function",
+      function: {
+        name: "chrome_tabs",
+        arguments: '{"method":"group","params":[{ "tabIds": ["&{args_0}"] }]}'
+      }
+    },
+    {
+      type: "function",
+      function: {
+        name: "chrome_tabGroups",
+        arguments:
+          '{"method":"update","params": ["&{args_0}",{"title": "test" }]}'
+      }
+    }
+  ]`,
       },
       {
         role: 'user',
         content: content,
       },
     ];
-    
+
     const tools: ChatCompletionTool[] = [
       {
         type: 'function',
@@ -222,7 +241,7 @@ export class AppService {
           content: functionResponse,
         }); // extend conversation with function response
       });
-
+      return toolCalls;
       const secondResponse = await openai.chat.completions.create({
         model: 'gpt-3.5-turbo-1106',
         messages: messages,
